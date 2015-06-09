@@ -1,0 +1,41 @@
+{
+  "name": "grunt-cover-ts",
+  "description": "Takes line coverage information and source maps to determine coverage for TypeScript.",
+  "version": "0.1.0",
+  "homepage": "https://github.com/kitsonk/grunt-cover-ts",
+  "author": {
+    "name": "Kitson Kelly",
+    "email": "dojo@kitsonkelly.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/kitsonk/grunt-cover-ts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kitsonk/grunt-cover-ts/issues"
+  },
+  "licenses": [
+    {
+      "type": "BSD-3-Clause",
+      "url": "https://github.com/kitsonk/grunt-cover-ts/blob/master/LICENSE"
+    }
+  ],
+  "engines": {
+    "node": ">= 0.8.0"
+  },
+  "scripts": {
+    "test": "grunt test"
+  },
+  "devDependencies": {
+    "grunt-contrib-jshint": "^0.9.2",
+    "grunt-contrib-clean": "^0.5.0",
+    "grunt-contrib-nodeunit": "^0.3.3",
+    "grunt": "~0.4.5"
+  },
+  "peerDependencies": {
+    "grunt": "~0.4.5"
+  },
+  "keywords": [
+    "gruntplugin"
+  ]
+}

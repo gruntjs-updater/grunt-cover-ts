@@ -5,46 +5,312 @@
  * Copyright (c) 2015 Kitson Kelly
  * Licensed under the BSD-3-Clause license.
  */
-
-'use strict';
-
-module.exports = function(grunt) {
-
-  // Please see the Grunt documentation for more information regarding task
-  // creation: http://gruntjs.com/creating-tasks
-
-  grunt.registerMultiTask('cover_ts', 'Takes line coverage information and source maps to determine coverage for TypeScript.', function() {
-    // Merge task-specific and/or target-specific options with these defaults.
-    var options = this.options({
-      punctuation: '.',
-      separator: ', '
-    });
-
-    // Iterate over all specified file groups.
-    this.files.forEach(function(f) {
-      // Concat specified files.
-      var src = f.src.filter(function(filepath) {
-        // Warn on and remove invalid source files (if nonull was set).
-        if (!grunt.file.exists(filepath)) {
-          grunt.log.warn('Source file "' + filepath + '" not found.');
-          return false;
-        } else {
-          return true;
+var fs = require('fs');
+var sourceMap = require('source-map');
+var TN = /^TN:\s*(.*)$/;
+var SF = /^SF:\s*(.*)$/;
+var FN = /^FN:\s*([0-9]+),(.*)$/;
+var FNF = /^FNF:\s*([0-9]+)$/;
+var FNH = /^FNH:\s*([0-9]+)$/;
+var FNDA = /^FNDA:\s*([0-9]+),(.*)$/;
+var DA = /^DA:\s*([0-9]+),([0-9]+)$/;
+var LF = /^LF:\s*([0-9]+)$/;
+var LH = /^LH:\s*([0-9]+)$/;
+var BRDA = /^BRDA:\s*([0-9]+),([0-9]+),([0-9]+),([0-9]+)$/;
+var BRF = /^BRF:\s*([0-9]+)/;
+var BRH = /^BRH:\s*([0-9]+)/;
+var END_OF_RECORD = /^\s*end_of_record\s*$/;
+var LcovRecord = (function () {
+    function LcovRecord() {
+        this.tn = '';
+        this.sourceFile = '';
+        this.functions = [];
+        this.functionCount = 0;
+        this.functionCoveredCount = 0;
+        this.functionsAccessed = [];
+        this.linesAccessed = [];
+        this.lineCount = 0;
+        this.lineCoveredCount = 0;
+        this.branchesCovered = [];
+        this.branchCount = 0;
+        this.branchCoveredCount = 0;
+    }
+    return LcovRecord;
+})();
+function parseLcov(lcov) {
+    function parseRecord(record) {
+        var result = new LcovRecord();
+        result.functions = [];
+        result.functionsAccessed = [];
+        result.linesAccessed = [];
+        result.branchesCovered = [];
+        record.forEach(function (line) {
+            var execResult;
+            if (execResult = TN.exec(line)) {
+                result.tn = execResult[1];
+            }
+            else if (execResult = SF.exec(line)) {
+                result.sourceFile = execResult[1];
+            }
+            else if (execResult = FN.exec(line)) {
+                result.functions.push({
+                    lineNumber: Number(execResult[1]),
+                    functionName: execResult[2]
+                });
+            }
+            else if (execResult = FNF.exec(line)) {
+                result.functionCount = Number(execResult[1]);
+            }
+            else if (execResult = FNH.exec(line)) {
+                result.functionCoveredCount = Number(execResult[1]);
+            }
+            else if (execResult = FNDA.exec(line)) {
+                result.functionsAccessed.push({
+                    count: Number(execResult[1]),
+                    functionName: execResult[2]
+                });
+            }
+            else if (execResult = DA.exec(line)) {
+                result.linesAccessed.push({
+                    lineNumber: Number(execResult[1]),
+                    count: Number(execResult[2])
+                });
+            }
+            else if (execResult = LF.exec(line)) {
+                result.lineCount = Number(execResult[1]);
+            }
+            else if (execResult = LH.exec(line)) {
+                result.lineCoveredCount = Number(execResult[1]);
+            }
+            else if (execResult = BRDA.exec(line)) {
+                result.branchesCovered.push({
+                    lineNumber: Number(execResult[1]),
+                    id: Number(execResult[2]),
+                    branch: Number(execResult[3]),
+                    count: Number(execResult[4])
+                });
+            }
+            else if (execResult = BRF.exec(line)) {
+                result.branchCount = Number(execResult[1]);
+            }
+            else if (execResult = BRH.exec(line)) {
+                result.branchCoveredCount = Number(execResult[1]);
+            }
+        });
+        return result;
+    }
+    var records = [];
+    var lines = lcov.match(/[^\r\n]+/g);
+    var record = [];
+    lines.forEach(function (line) {
+        if (line.match(END_OF_RECORD)) {
+            records.push(parseRecord(record));
+            record = [];
         }
-      }).map(function(filepath) {
-        // Read file source.
-        return grunt.file.read(filepath);
-      }).join(grunt.util.normalizelf(options.separator));
-
-      // Handle options.
-      src += options.punctuation;
-
-      // Write the destination file.
-      grunt.file.write(f.dest, src);
-
-      // Print a success message.
-      grunt.log.writeln('File "' + f.dest + '" created.');
+        else {
+            record.push(line);
+        }
     });
-  });
-
+    return records;
+}
+;
+function writeLcov(records) {
+    var lcov = [];
+    function writeRecord(record) {
+        var result = [];
+        result.push('TN:' + record.tn);
+        result.push('SF:' + record.sourceFile);
+        record.functions.forEach(function (item) {
+            result.push('FN:' + item.lineNumber + ',' + item.functionName);
+        });
+        result.push('FNF:' + record.functionCount);
+        result.push('FNH:' + record.functionCoveredCount);
+        record.functionsAccessed.forEach(function (item) {
+            result.push('FNDA:' + item.count + ',' + item.functionName);
+        });
+        record.linesAccessed.forEach(function (item) {
+            result.push('DA:' + item.lineNumber + ',' + item.count);
+        });
+        result.push('LF:' + record.lineCount);
+        result.push('LH:' + record.lineCoveredCount);
+        record.branchesCovered.forEach(function (item) {
+            result.push('BRDA:' + item.lineNumber + ',' + item.id + ',' + item.branch + ',' + item.count);
+        });
+        result.push('BRF:' + record.branchCount);
+        result.push('BRH:' + record.branchCoveredCount);
+        result.push('end_of_record');
+        return result;
+    }
+    records.forEach(function (record) {
+        lcov = lcov.concat(writeRecord(record));
+    });
+    return lcov.join('\n');
+}
+function remap(lcovRecord, src, smc) {
+    var funcPos = [];
+    var inComment = false;
+    src.forEach(function (item, idx) {
+        var reg = /function\s+([^ "'\(]+)?\s*\(/g;
+        var commentStart = /\/\*/.exec(item);
+        var commentEnd = /\*\//.exec(item);
+        var commentLine = /\/{2}/.exec(item);
+        var match;
+        while (match = reg.exec(item)) {
+            if (commentLine && commentLine.index < match.index) {
+                continue;
+            }
+            if (inComment && (!commentEnd || (commentEnd && match.index < commentEnd.index))) {
+                continue;
+            }
+            if (commentStart && commentStart.index < match.index) {
+                if (!commentEnd || (commentEnd && commentEnd.index > match.index)) {
+                    continue;
+                }
+            }
+            funcPos.push({
+                line: idx + 1,
+                column: match.index + match[0].length + 1,
+                name: match[1]
+            });
+        }
+        if (inComment && commentEnd && !commentStart) {
+            inComment = false;
+        }
+        if (commentStart && !commentEnd) {
+            inComment = true;
+        }
+    });
+    var source;
+    funcPos = funcPos.map(function (item) {
+        var originalPosition = smc.originalPositionFor({ line: item.line, column: item.column });
+        if (originalPosition.source) {
+            if (!source) {
+                source = originalPosition.source;
+            }
+            else if (source !== originalPosition.source) {
+                throw new Error('Mapping between difference source files not supported: "' + source + '" and "' + originalPosition.source + '"');
+            }
+        }
+        item.originalLine = originalPosition.line;
+        return item;
+    });
+    lcovRecord.sourceFile = source.replace('../../', '');
+    if (funcPos.length !== lcovRecord.functions.length) {
+        throw new Error('Cannot re-map functions due to lack of matching');
+    }
+    lcovRecord.functions = lcovRecord.functions.map(function (item, idx) {
+        if (item.lineNumber === funcPos[idx].line && funcPos[idx].originalLine) {
+            item.lineNumber = funcPos[idx].originalLine;
+        }
+        else if (item.lineNumber !== funcPos[idx].line) {
+            console.warn('Emitted line numbers do not match for function: ' + item.functionName);
+        }
+        return item;
+    });
+    var lineMap = Array(src.length + 1);
+    smc.eachMapping(function (item) {
+        if (!lineMap[item.generatedLine]) {
+            lineMap[item.generatedLine] = [];
+        }
+        if (!~lineMap[item.generatedLine].indexOf(item.originalLine)) {
+            lineMap[item.generatedLine].push(item.originalLine);
+        }
+    });
+    var mappedAccessedLines = [];
+    var lineHash = {};
+    lcovRecord.linesAccessed.forEach(function (item) {
+        var lines;
+        if (lines = lineMap[item.lineNumber]) {
+            lines.forEach(function (lineNumber) {
+                if (!(lineNumber in lineHash)) {
+                    lineHash[lineNumber] = true;
+                    mappedAccessedLines.push({
+                        lineNumber: lineNumber,
+                        count: item.count
+                    });
+                }
+            });
+        }
+    });
+    mappedAccessedLines.sort(function (a, b) { return a.lineNumber === b.lineNumber ? 0 : a.lineNumber < b.lineNumber ? -1 : 1; });
+    lcovRecord.linesAccessed = mappedAccessedLines;
+    lcovRecord.lineCount = mappedAccessedLines.length;
+    lcovRecord.lineCoveredCount = mappedAccessedLines.reduce(function (previousValue, currentValue) { return previousValue + (currentValue.count ? 1 : 0); }, 0);
+    var branchesCovered = [];
+    var priorId = 0;
+    var branchId = 0;
+    lcovRecord.branchesCovered.forEach(function (branch) {
+        if (lineMap[branch.lineNumber]) {
+            if (priorId !== branch.id) {
+                priorId = branch.id;
+                branchId++;
+            }
+            branchesCovered.push({
+                lineNumber: lineMap[branch.lineNumber][0],
+                id: branchId,
+                branch: branch.branch,
+                count: branch.count
+            });
+        }
+    });
+    lcovRecord.branchesCovered = branchesCovered;
+    lcovRecord.branchCount = branchesCovered.length;
+    lcovRecord.branchCoveredCount = branchesCovered.reduce(function (previousValue, currentValue) { return previousValue + (currentValue.count ? 1 : 0); }, 0);
+}
+module.exports = function (grunt) {
+    grunt.registerMultiTask('cover_ts', 'Takes line coverage information and source maps to determine coverage for TypeScript.', function () {
+        var done = this.async();
+        var options = this.options({
+            punctuation: '.',
+            separator: ', '
+        });
+        var parsedLcov;
+        var src;
+        var smc;
+        var sourceFileName;
+        var mapFileName;
+        var sourceFileNameStack;
+        function next() {
+            if (sourceFileName = sourceFileNameStack.shift()) {
+                console.log('Processing: ' + sourceFileName);
+                mapFileName = sourceFileName + '.map';
+                fs.readFile(sourceFileName, { encoding: 'utf8' }, readSourceCallback);
+            }
+            else {
+                writeLcov(parsedLcov);
+                done();
+            }
+        }
+        function mapLcov() {
+            parsedLcov.forEach(function (lcovRecord) {
+                if (lcovRecord.sourceFile === sourceFileName) {
+                    remap(lcovRecord, src, smc);
+                }
+            });
+            next();
+        }
+        function readMapCallback(err, data) {
+            if (err) {
+                throw new Error('Cannot read map file: ' + err.message);
+            }
+            smc = new sourceMap.SourceMapConsumer(JSON.parse(data));
+            mapLcov();
+        }
+        function readSourceCallback(err, data) {
+            if (err) {
+                throw new Error('Cannot read source file: ' + err.message);
+            }
+            src = data.match(/[^\r\n]+/g);
+            fs.readFile(mapFileName, { encoding: 'utf8' }, readMapCallback);
+        }
+        function lcovReadCallback(err, data) {
+            if (err) {
+                throw new Error('Cannot read coverage file: ' + err.message);
+            }
+            parsedLcov = parseLcov(data);
+            sourceFileNameStack = parsedLcov.map(function (item) { return item.sourceFile; });
+            next();
+        }
+        fs.readFile(this.srcFile[0], { encoding: 'utf8' }, lcovReadCallback);
+    });
 };

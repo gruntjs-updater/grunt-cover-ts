@@ -1,7 +1,7 @@
 sudo: false
 language: node_js
 node_js:
-  - "0.12"
+  - "iojs"
 cache:
   directories:
     - node_modules
@@ -9,4 +9,4 @@ install:
   - "travis_retry npm install grunt-cli"
   - "travis_retry npm install"
 script:
-  - "grunt ci"
+  - "grunt"

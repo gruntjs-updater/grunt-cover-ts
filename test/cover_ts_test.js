@@ -22,27 +22,33 @@ var grunt = require('grunt');
     test.ifError(value)
 */
 
+function runGruntTask(taskName, callback) {
+    var task = grunt.task._taskPlusArgs(taskName);
+    task.task.fn.apply({
+        nameArgs: task.nameArgs,
+        name: task.task.name,
+        args: task.args,
+        flags: task.flags,
+        async: function() { return callback; }
+    }, task.args);
+}
+
 exports.cover_ts = {
-  setUp: function(done) {
+  setUp: function (done) {
     // setup here if necessary
     done();
   },
-  default_options: function(test) {
+  tearDown: function (done) {
+      done();
+  },
+  basic: function (test) {
     test.expect(1);
 
-    var actual = grunt.file.read('tmp/default_options');
-    var expected = grunt.file.read('test/expected/default_options');
-    test.equal(actual, expected, 'should describe what the default behavior is.');
-
-    test.done();
-  },
-  custom_options: function(test) {
-    test.expect(1);
-
-    var actual = grunt.file.read('tmp/custom_options');
-    var expected = grunt.file.read('test/expected/custom_options');
-    test.equal(actual, expected, 'should describe what the custom option(s) behavior is.');
-
-    test.done();
-  },
+    runGruntTask('cover_ts:basic', function () {
+        var expected = grunt.file.read('test/expected/lcov.info');
+        var fixtures = grunt.file.read('test/fixtures/lcov.info');
+        test.equal(expected, fixtures, 'line coverage file remapped');
+        test.done();
+    });
+  }
 };

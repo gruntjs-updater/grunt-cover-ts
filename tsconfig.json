@@ -7,17 +7,17 @@
         "noImplicitAny": true,
         "removeComments": true,
         "noLib": false,
-        "preserveConstEnums": true,
-        "suppressImplicitAnyIndexErrors": true,
-        "outDir": "./tasks"
+        "sourceMap": true,
+        "outDir": "./"
     },
     "filesGlob": [
         "./typings/tsd.d.ts",
-        "./src/**/*.ts",
-        "./tests/**/*.ts"
+        "./tasks/**/*.ts",
+        "./test/**/*.ts"
     ],
     "files": [
         "./typings/tsd.d.ts",
-        "./src/cover_ts.ts"
+        "./tasks/cover_ts.ts",
+        "./test/fixtures/basic.ts"
     ]
 }

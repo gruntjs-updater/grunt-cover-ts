@@ -318,13 +318,10 @@ function remap(lcovRecord: LcovRecord, src: string[], smc: sourceMap.SourceMapCo
     lcovRecord.branchCoveredCount = branchesCovered.reduce((previousValue: number, currentValue: CoveredBranch) => previousValue + (currentValue.count ? 1 : 0), 0);
 }
 
-export = function(grunt: any) {
+export = function(grunt: IGrunt) {
     grunt.registerMultiTask('cover_ts', 'Takes line coverage information and source maps to determine coverage for TypeScript.', function() {
         let done = this.async();
-        let options = this.options({
-            punctuation: '.',
-            separator: ', '
-        });
+        let options = this.options({});
         let parsedLcov: LcovRecord[];
         let src: string[];
         let smc: sourceMap.SourceMapConsumer;
@@ -369,17 +366,8 @@ export = function(grunt: any) {
             fs.readFile(mapFileName, { encoding: 'utf8' }, readMapCallback);
         }
 
-        function lcovReadCallback(err: NodeJS.ErrnoException, data: string) {
-            if (err) {
-                throw new Error('Cannot read coverage file: ' + err.message);
-            }
-            parsedLcov = parseLcov(data);
-
-            sourceFileNameStack = parsedLcov.map(item => item.sourceFile);
-
-            next();
-        }
-
-        fs.readFile(this.srcFile[0], { encoding: 'utf8' }, lcovReadCallback);
+        parsedLcov = parseLcov(grunt.file.read(this.filesSrc[0]));
+        sourceFileNameStack = parsedLcov.map(item => item.sourceFile);
+        next();
     });
 }

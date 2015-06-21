@@ -1,4 +1,5 @@
 # grunt-cover-ts
+[![Build Status](https://travis-ci.org/kitsonk/grunt-cover-ts.svg)](https://travis-ci.org/kitsonk/grunt-cover-ts)
 
 Takes line coverage information and source maps to determine coverage for TypeScript.
 

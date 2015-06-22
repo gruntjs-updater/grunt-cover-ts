@@ -1,9 +1,14 @@
 
-class Foo{
-    constructor (message: string) {
-        this.bar = message;
+class Basic {
+    private _arg: string;
+    constructor (arg: string) {
+        this._arg = arg;
     }
-    bar: string;
+    emit(): string {
+        return this._arg;
+    }
 }
 
-let foo = new Foo('qat');
+var basic = new Basic('test');
+
+export default basic;

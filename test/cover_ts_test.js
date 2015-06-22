@@ -45,7 +45,7 @@ exports.cover_ts = {
     test.expect(1);
 
     runGruntTask('cover_ts:basic', function () {
-        var expected = grunt.file.read('test/expected/lcov.info');
+        var expected = grunt.file.read('test/expected/basic.lcov.info');
         var fixtures = grunt.file.read('test/fixtures/lcov.info');
         test.equal(expected, fixtures, 'line coverage file remapped');
         test.done();

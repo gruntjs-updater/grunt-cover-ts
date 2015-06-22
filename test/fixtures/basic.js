@@ -1,8 +1,12 @@
-var Foo = (function () {
-    function Foo(message) {
-        this.bar = message;
+var Basic = (function () {
+    function Basic(arg) {
+        this._arg = arg;
     }
-    return Foo;
+    Basic.prototype.emit = function () {
+        return this._arg;
+    };
+    return Basic;
 })();
-var foo = new Foo('qat');
+var basic = new Basic('test');
+exports.default = basic;
 //# sourceMappingURL=basic.js.map

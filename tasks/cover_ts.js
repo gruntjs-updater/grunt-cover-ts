@@ -262,22 +262,35 @@ module.exports = function (grunt) {
     grunt.registerMultiTask('cover_ts', 'Takes line coverage information and source maps to determine coverage for TypeScript.', function () {
         var done = this.async();
         var options = this.options({});
-        var parsedLcov;
-        parsedLcov = parseLcov(grunt.file.read(this.filesSrc[0]));
-        parsedLcov.map(function (item) { return item.sourceFile; }).forEach(function (sourceFileName) {
-            grunt.log.writeln('Processing: ' + sourceFileName);
-            var sourceFileText = grunt.file.read(sourceFileName);
-            var mapFileNameMatch = sourceMapRegEx.exec(sourceFileText);
-            var mapFileName = mapFileNameMatch ? path.join(path.dirname(sourceFileName), mapFileNameMatch[1]) : sourceFileName + '.map';
-            var src = sourceFileText.match(/[^\r\n]+/g);
-            var smc = new sourceMap.SourceMapConsumer(grunt.file.readJSON(mapFileName));
-            parsedLcov.forEach(function (lcovRecord) {
-                if (lcovRecord.sourceFile === sourceFileName) {
-                    remap(lcovRecord, src, smc);
+        this.files.forEach(function (file) {
+            var destContent = '';
+            file.src.forEach(function (fileName) {
+                var parsedLcov = parseLcov(grunt.file.read(fileName));
+                parsedLcov.map(function (item) { return item.sourceFile; }).forEach(function (sourceFileName) {
+                    grunt.log.writeln('Processing: ' + sourceFileName);
+                    var sourceFileText = grunt.file.read(sourceFileName);
+                    var mapFileNameMatch = sourceMapRegEx.exec(sourceFileText);
+                    var mapFileName = mapFileNameMatch ? path.join(path.dirname(sourceFileName), mapFileNameMatch[1]) : sourceFileName + '.map';
+                    var src = sourceFileText.match(/[^\r\n]+/g);
+                    var smc = new sourceMap.SourceMapConsumer(grunt.file.readJSON(mapFileName));
+                    parsedLcov.forEach(function (lcovRecord) {
+                        if (lcovRecord.sourceFile === sourceFileName) {
+                            remap(lcovRecord, src, smc);
+                        }
+                    });
+                });
+                var content = emitLcov(parsedLcov);
+                if (file.dest) {
+                    destContent += content;
+                }
+                else {
+                    grunt.file.write(fileName, content);
                 }
             });
+            if (file.dest) {
+                grunt.file.write(file.dest, destContent);
+            }
         });
-        grunt.file.write(this.filesSrc[0], emitLcov(parsedLcov));
         done();
     });
 };

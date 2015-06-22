@@ -23,14 +23,16 @@ grunt.loadNpmTasks('grunt-cover-ts');
 ## The "cover_ts" task
 
 ### Overview
+
 In your project's Gruntfile, add a section named `cover_ts` to the data object passed into `grunt.initConfig()`.
 
 ```js
 grunt.initConfig({
   cover_ts: {
-    src: 'lcov.info', // location of the lcov.info to rewrite
+    src: 'lcov.info', // location of the source lcov.info
+    dest: 'dest/lcov.info', // location of the destination lcov.info
     your_target: {
-      src: 'tmp/lcov.info'  // when using a specific target, location of your lcov.info to rewrite
+      src: 'tmp/lcov.info'  // when using a specific target, location of your source lcov.info
     }
   }
 });
@@ -51,6 +53,8 @@ grunt.initConfig({
 ```
 
 If you are then submitting your coverage information somewhere, just ensure that this task occurs after your coverage information is produced and before submission to the remote host.
+
+If you omit a `dest` property, the task will assume you want to overwrite the original source.  While the grunt task interface allows for multiple source file mappings to a single destination, that doesn't make a lot of sense with a `lcov.info`, but if there are multiple source files the task will simply concatenate these together into a single file.
 
 ## Release History
 _(Nothing yet)_

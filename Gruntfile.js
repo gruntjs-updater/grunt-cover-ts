@@ -35,7 +35,8 @@ module.exports = function(grunt) {
         // Configuration to be run (and then tested).
         cover_ts: {
             basic: {
-				src: 'test/fixtures/lcov.info'
+				src: 'test/fixtures/lcov.info',
+				dest: 'tmp/lcov.info'
 			}
         },
 

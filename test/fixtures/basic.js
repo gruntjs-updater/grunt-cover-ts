@@ -8,5 +8,11 @@ var Basic = (function () {
     return Basic;
 })();
 var basic = new Basic('test');
+if (basic && basic.emit()) {
+    console.log('foo');
+}
+else {
+    console.log('bar');
+}
 exports.default = basic;
 //# sourceMappingURL=basic.js.map

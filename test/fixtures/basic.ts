@@ -11,4 +11,11 @@ class Basic {
 
 var basic = new Basic('test');
 
+if (basic && basic.emit()) {
+    console.log('foo');
+}
+else {
+    console.log('bar');
+}
+
 export default basic;

@@ -34,21 +34,28 @@ function runGruntTask(taskName, callback) {
 }
 
 exports.cover_ts = {
-  setUp: function (done) {
-    // setup here if necessary
-    done();
-  },
-  tearDown: function (done) {
-      done();
-  },
-  basic: function (test) {
-    test.expect(1);
+    setUp: function (done) {
+        // setup here if necessary
+        done();
+    },
+    basic: function (test) {
+        test.expect(1);
 
-    runGruntTask('cover_ts:basic', function () {
-        var expected = grunt.file.read('test/expected/basic.lcov.info');
-        var results = grunt.file.read('tmp/lcov.info');
-        test.equal(expected, results, 'line coverage file remapped');
-        test.done();
-    });
-  }
+        runGruntTask('cover_ts:basic', function () {
+            var expected = grunt.file.read('test/expected/basic.lcov.info');
+            var results = grunt.file.read('tmp/basic.lcov.info');
+            test.equal(expected, results, 'line coverage file remapped');
+            test.done();
+        });
+    },
+    inline: function (test) {
+        test.expect(1);
+
+        runGruntTask('cover_ts:inline', function () {
+            var expected = grunt.file.read('test/expected/inline.lcov.info');
+            var results = grunt.file.read('tmp/inline.lcov.info');
+            test.equal(expected, results, 'line coverage file remapped');
+            test.done();
+        });
+    }
 };

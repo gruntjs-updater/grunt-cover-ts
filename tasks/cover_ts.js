@@ -20,7 +20,7 @@ var BRDA = /^BRDA:\s*([0-9]+),([0-9]+),([0-9]+),([0-9]+)$/;
 var BRF = /^BRF:\s*([0-9]+)/;
 var BRH = /^BRH:\s*([0-9]+)/;
 var END_OF_RECORD = /^\s*end_of_record\s*$/;
-var sourceMapRegEx = /\/{2}#\s*sourceMappingURL\s*=\s*(\S+)/;
+var sourceMapRegEx = /(?:\/{2}[#@]{1,2}|\/\*)\s+sourceMappingURL\s*=\s*(data:(?:[^;]+;)+base64,)?(\S+)/;
 var LcovRecord = (function () {
     function LcovRecord() {
         this.tn = '';
@@ -269,10 +269,20 @@ module.exports = function (grunt) {
                 parsedLcov.map(function (item) { return item.sourceFile; }).forEach(function (sourceFileName) {
                     grunt.log.writeln('Processing: ' + sourceFileName);
                     var sourceFileText = grunt.file.read(sourceFileName);
-                    var mapFileNameMatch = sourceMapRegEx.exec(sourceFileText);
-                    var mapFileName = mapFileNameMatch ? path.join(path.dirname(sourceFileName), mapFileNameMatch[1]) : sourceFileName + '.map';
                     var src = sourceFileText.match(/[^\r\n]+/g);
-                    var smc = new sourceMap.SourceMapConsumer(grunt.file.readJSON(mapFileName));
+                    var sourceMappingURL = sourceMapRegEx.exec(sourceFileText);
+                    var sourceMapContent;
+                    if (sourceMappingURL && sourceMappingURL[1]) {
+                        var buffer = new Buffer(sourceMappingURL[2], 'base64');
+                        sourceMapContent = JSON.parse(buffer.toString('ascii'));
+                    }
+                    else if (sourceMappingURL) {
+                        sourceMapContent = grunt.file.readJSON(path.join(path.dirname(sourceFileName), sourceMappingURL[2]));
+                    }
+                    else {
+                        sourceMapContent = grunt.file.readJSON(sourceFileName + '.map');
+                    }
+                    var smc = new sourceMap.SourceMapConsumer(sourceMapContent);
                     parsedLcov.forEach(function (lcovRecord) {
                         if (lcovRecord.sourceFile === sourceFileName) {
                             remap(lcovRecord, src, smc);

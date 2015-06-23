@@ -18,6 +18,7 @@
     "files": [
         "./typings/tsd.d.ts",
         "./tasks/cover_ts.ts",
-        "./test/fixtures/basic.ts"
+        "./test/fixtures/basic.ts",
+        "./test/fixtures/inline.ts"
     ]
 }

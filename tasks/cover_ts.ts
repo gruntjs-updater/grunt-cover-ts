@@ -23,7 +23,8 @@ const BRF = /^BRF:\s*([0-9]+)/; /* branch count */
 const BRH = /^BRH:\s*([0-9]+)/; /* branch count count */
 const END_OF_RECORD = /^\s*end_of_record\s*$/; /* end of record */
 
-const sourceMapRegEx = /\/{2}#\s*sourceMappingURL\s*=\s*(\S+)/; /* identifies where source-map is */
+/* identifies a sourceMap comment, including detecting if it is a inline source map */
+const sourceMapRegEx = /(?:\/{2}[#@]{1,2}|\/\*)\s+sourceMappingURL\s*=\s*(data:(?:[^;]+;)+base64,)?(\S+)/;
 
 interface LineHash {
     [index: number]: boolean;
@@ -337,10 +338,23 @@ export = function(grunt: IGrunt) {
                 parsedLcov.map(item => item.sourceFile).forEach(function (sourceFileName) {
                     grunt.log.writeln('Processing: ' + sourceFileName);
                     const sourceFileText = grunt.file.read(sourceFileName);
-                    const mapFileNameMatch = sourceMapRegEx.exec(sourceFileText);
-                    const mapFileName = mapFileNameMatch ? path.join(path.dirname(sourceFileName), mapFileNameMatch[1]) : sourceFileName + '.map';
                     const src = sourceFileText.match(/[^\r\n]+/g);
-                    const smc = new sourceMap.SourceMapConsumer(grunt.file.readJSON(mapFileName));
+                    const sourceMappingURL = sourceMapRegEx.exec(sourceFileText);
+                    let sourceMapContent: any;
+                    if (sourceMappingURL && sourceMappingURL[1]) {
+                        /* the sourceMap is a data URI */
+                        const buffer = new Buffer(sourceMappingURL[2], 'base64');
+                        sourceMapContent = JSON.parse(buffer.toString('ascii'));
+                    }
+                    else if (sourceMappingURL) {
+                        /* the sourceMap is a standard URI */
+                        sourceMapContent = grunt.file.readJSON(path.join(path.dirname(sourceFileName), sourceMappingURL[2]));
+                    }
+                    else {
+                        /* the sourceMap is not present */
+                        sourceMapContent = grunt.file.readJSON(sourceFileName + '.map');
+                    }
+                    const smc = new sourceMap.SourceMapConsumer(sourceMapContent);
                     parsedLcov.forEach(function (lcovRecord: LcovRecord) {
                         if (lcovRecord.sourceFile === sourceFileName) {
                             remap(lcovRecord, src, smc);

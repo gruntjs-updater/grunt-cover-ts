@@ -221,6 +221,7 @@ export = function(grunt: IGrunt) {
                     const itemSourceMap = loadSourceMap(item.path);
                     const mappedItem = remap(item, itemSourceMap);
                     targetCoverage[mappedItem.path] = mappedItem;
+                    grunt.log.oklns('Mapped "' + key + '" to "' + mappedItem.path + '"');
                 }
                 if (file.dest) {
                     for (let key in targetCoverage) {

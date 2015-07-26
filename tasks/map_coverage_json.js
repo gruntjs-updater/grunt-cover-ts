@@ -158,6 +158,7 @@ module.exports = function (grunt) {
                     var itemSourceMap = loadSourceMap(item.path);
                     var mappedItem = remap(item, itemSourceMap);
                     targetCoverage[mappedItem.path] = mappedItem;
+                    grunt.log.oklns('Mapped "' + key + '" to "' + mappedItem.path + '"');
                 }
                 if (file.dest) {
                     for (var key in targetCoverage) {

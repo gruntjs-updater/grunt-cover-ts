@@ -33,7 +33,7 @@ function runGruntTask(taskName, callback) {
     }, task.args);
 }
 
-exports.coverage = {
+exports.map_coverage_json = {
     setUp: function (done) {
         // setup here if necessary
         done();

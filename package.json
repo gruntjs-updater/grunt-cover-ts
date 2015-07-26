@@ -1,7 +1,7 @@
 {
     "name": "grunt-cover-ts",
     "description": "Takes line coverage information and source maps to determine coverage for TypeScript.",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "homepage": "https://github.com/kitsonk/grunt-cover-ts",
     "author": {
         "name": "Kitson Kelly",

@@ -20,6 +20,7 @@ declare module SourceMap {
     interface Position {
         line: number;
         column: number;
+        bias?: number;
     }
 
     interface MappedPosition extends Position {
@@ -51,6 +52,9 @@ declare module SourceMap {
     class SourceMapConsumer {
         public static GENERATED_ORDER: number;
         public static ORIGINAL_ORDER: number;
+
+        public static GREATEST_LOWER_BOUND: number;
+        public static LEAST_UPPER_BOUND: number;
 
         constructor(rawSourceMap: RawSourceMap);
         public originalPositionFor(generatedPosition: Position): MappedPosition;

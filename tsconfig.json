@@ -1,5 +1,5 @@
 {
-    "version": "1.5.0-alpha",
+    "version": "1.5.3",
     "compilerOptions": {
         "target": "es5",
         "module": "commonjs",
@@ -18,6 +18,8 @@
     "files": [
         "./typings/tsd.d.ts",
         "./tasks/cover_ts.ts",
+        "./tasks/map_coverage_json.ts",
+        "./test/fixtures/basic-coverage.ts",
         "./test/fixtures/basic.ts",
         "./test/fixtures/inline.ts"
     ]

@@ -23,6 +23,44 @@ Once the plugin has been installed, it may be enabled inside your Gruntfile with
 grunt.loadNpmTasks('grunt-cover-ts');
 ```
 
+## The "map_coverage_json" task
+
+### Overview
+
+In your project's Gruntfile, add a section named `map_coverage_json` to the data object passed into `grunt.initConfig()`.
+
+```js
+grunt.initConfig({
+    map_coverage_json: {
+        files: {
+            src: 'coverage-final.json', // location of the source json
+            dest: 'dest/coverage-final.json' // location of the destination json
+        },
+        your_target: {
+            files: {
+                src: 'tmp/coverage-final.json' // when using a specific target, location of your source json
+            }
+        }
+    }
+})
+```
+
+### Usage Examples
+
+#### Basic Usage
+
+You just need to provide a location of a JSON coverage file and it will then be analysed and rewritten by the plugin, so basic usage would look something like this:
+
+```js
+grunt.initConfig({
+    map_coverage_json: {
+        files: {
+            src: 'coverage-final.info'
+        }
+    }
+});
+```
+
 ## The "cover_ts" task
 
 ### Overview
@@ -34,7 +72,7 @@ grunt.initConfig({
   cover_ts: {
       files: {
           src: 'lcov.info', // location of the source lcov.info
-          dest: 'dest/lcov.info', // location of the destination lcov.info
+          dest: 'dest/lcov.info' // location of the destination lcov.info
       },
       your_target: {
           files: {

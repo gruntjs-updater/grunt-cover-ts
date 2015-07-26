@@ -44,6 +44,13 @@ module.exports = function(grunt) {
 			}
         },
 
+		map_coverage_json: {
+			basic: {
+				src: 'test/fixtures/coverage-final.json',
+				dest: 'tmp/coverage-final.json'
+			}
+		},
+
 		// Unit tests.
 		nodeunit: {
 			tests: ['test/*_test.js']

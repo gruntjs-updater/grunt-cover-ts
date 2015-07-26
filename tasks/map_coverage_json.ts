@@ -228,7 +228,7 @@ export = function(grunt: IGrunt) {
                     }
                 }
                 else {
-                    grunt.file.write(fileName, JSON.stringify(coverage));
+                    grunt.file.write(fileName, JSON.stringify(targetCoverage));
                 }
             });
 

@@ -165,7 +165,7 @@ module.exports = function (grunt) {
                     }
                 }
                 else {
-                    grunt.file.write(fileName, JSON.stringify(coverage));
+                    grunt.file.write(fileName, JSON.stringify(targetCoverage));
                 }
             });
             if (file.dest) {
